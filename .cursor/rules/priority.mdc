@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# ルールの優先順位
+
+降順で順位を表す。(1. が最優先)
+
+1. priority.mdc
+2. project.mdc
+3. cpp.mdc
+4. basic.mdc

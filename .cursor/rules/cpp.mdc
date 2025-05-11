@@ -1,0 +1,315 @@
+---
+description: 
+globs: *.cpp,*.c,*.h,*.hpp
+alwaysApply: false
+---
+## 基本ルール
+- 基本ルールは basic.mdc を参照
+- 本ルールは basic.mdc の補足として使用する
+- ルールの優先順位は `priority.mdc` を参照すること
+
+## ソースコード記述ルール
+- formatter は uncrstify を利用する。
+
+## ファイル構成順序
+1. copyright表記
+   ```cpp
+   /*
+    * Copyright 2025 (C) Shin-ichi Nagamura.
+    * All rights reserved.
+    *
+    * $Id$
+    */
+   ```
+
+2. インクルード
+   - システムヘッダー（<>）を先に
+   - 次にプロジェクトヘッダー（""）
+   - インクルードガード（ヘッダーファイルの場合）
+   - "", <> のブロックの中は辞書順にする。
+
+3. マクロ定義（#define）
+   - 定数マクロ
+   - 関数マクロ
+
+4. 型宣言
+   - typedef
+   - enum
+   - struct
+   - class
+   - union
+
+5. 名前空間の開始（必要な場合）
+   ```cpp
+   namespace your_namespace {
+   ```
+
+6. extern宣言（必要な場合）
+   ```cpp
+   extern int global_var ;
+   ```
+
+7. 関数宣言（プロトタイプ）
+   - グローバル関数
+   - static関数
+
+8. 変数の実態宣言
+   - static変数
+   - グローバル変数
+   - 定数
+
+9. 関数の実態定義
+   - static関数
+   - グローバル関数
+   - クラスメソッド
+
+10. 名前空間の終了（必要な場合）
+    ```cpp
+    } // namespace your_namespace
+    ```
+
+## インデント
+- ハードタブ（4スペース）を使用
+- タブキーで入力（スペースキーで4回押すのはNG）
+- タブ幅は4文字に設定
+- 変数の型と変数名、関数名の間には1つ以上のタブを入れる。
+
+## 縦を揃える
+- 変数宣言での変数名の横の位置
+- 代入文の=の位置
+- Doxygenコメントの特殊コマンド、要素、説明文の位置
+
+これらを可能な限り揃える。
+視覚的にすばやく認識出来る事は非常に大事。
+
+## 変数宣言
+- 1行に1つの変数宣言
+- 型と変数名の間にタブを使用
+- 複数行の変数宣言は縦位置を揃える
+- 例：
+  ```cpp
+  int		opt ;
+  int		option_index = 0 ;
+  bool		verbose = false ;
+  bool		debug = false ;
+  ```
+
+## 関数宣言
+- 引数の型と変数名の間にスペース
+- 引数間のカンマの後にスペース
+- 例：
+  ```cpp
+  bool parseArguments(int argc, char* argv[], std::string& algorithm, bool& verbose, bool& debug)
+  ```
+
+## ポインタと参照
+- ポインタの*は型名に付ける
+- 参照の&は変数名に付ける
+- 例：
+  ```cpp
+  char*		ptr ;		// ポインタ
+  std::string&	ref ;		// 参照
+  ```
+
+## クラス
+- クラス名はprefixとして "C" を付ける。
+- メンバ変数はm_プレフィックスを付ける
+- 例：
+  ```cpp
+  class CvfDetector {
+  private:
+  	int		m_sampleRate ;
+  	bool		m_isInitialized ;
+  } ;
+  ```
+
+## 構造体
+- 構造体型名には postfixとして "_t" を付ける。
+
+## 名前空間
+- 名前空間は小文字
+- 例：
+  ```cpp
+  namespace vfdetector {
+  } ;
+  ```
+
+## 列挙型
+- 列挙型型名には postfixとして "_t" を付ける。
+- 列挙子は大文字のスネークケース。
+- 例：
+  ```cpp
+  enum EDetectorState {
+  	STATE_IDLE,
+  	STATE_RUNNING,
+  	STATE_ERROR
+  } ;
+  ```
+
+## マクロ
+- マクロ名は大文字
+- 引数は小文字
+- 例：
+  ```cpp
+  #define MAX(a, b) ((a) > (b) ? (a) : (b))
+  ```
+
+## 条件文とループ
+- if, for, while, switch, return などの制御構文とその後のカッコは一体のものとして扱い、スペースを入れない
+- カッコの内側にはスペースを入れる
+- 例：
+  ```cpp
+  if( condition ) {
+  }
+  
+  for( int i = 0 ; i < n ; ++i ) {
+  }
+  
+  while( condition ) {
+  }
+
+  switch( opt ) {
+  }
+
+  return( true ) ;
+  ```
+
+## 縦位置の揃え方
+- 同じカラムの要素は縦に揃える
+- 特に構造体の初期化などでは、各フィールドの位置を揃える
+- Doxygenコメントの特殊コマンド、要素、説明文の位置を揃える
+- 例：
+  ```cpp
+  static struct option	long_options[] = {
+  	{ "verbose",	no_argument,		0,	'v'	},
+  	{ "debug",		no_argument,		0,	'd'	},
+  	{ "help",		no_argument,		0,	'h'	},
+  	{ 0,			0,					0,	0	}
+  }	;
+
+  /**
+   * @brief	関数の説明
+   * 
+   * @param	arg1		引数1の説明
+   * @param	arg2		引数2の説明
+   * @return	true		成功時の説明
+   * @return	false		失敗時の説明
+   */
+  bool function(int arg1, int arg2) {
+      // ...
+  }
+  ```
+
+## 演算子
+- 二項演算子の前後にスペース
+- 単項演算子とオペランドの間にはスペースなし
+- 例：
+  ```cpp
+  a = b + c ;		// 二項演算子
+  ++i ;			// 単項演算子
+  ```
+
+## コメント
+- コメントの前後にスペース
+- 複数行コメントは /* と */ を独立した行に
+- Doxygenコメントは特殊コマンド、要素、説明文の位置を揃える
+- 例：
+  ```cpp
+  // 一行コメント
+  
+  /*
+   * 複数行コメント
+   * 2行目
+   */
+
+  /**
+   * @brief	関数の説明
+   * 
+   * @param	arg1		引数1の説明
+   * @param	arg2		引数2の説明
+   * @retval	true		成功時の説明
+   * @retval	false		失敗時の説明
+   */
+  ```
+
+## ヘッダーガード
+- ヘッダーガードは大文字
+- 基準点からのディレクトリ、ファイル名の間は "_" で接続
+- ドットは "_" で置き換え
+- prefix, postfix に "__" を付与
+- 例：
+  ```cpp
+  #if !defined( __ex_math_fft_h__ )
+  #define __ex_math_fft_h__
+  // ...
+  #endif // __ex_math_fft_h__
+  ```
+
+## 例外処理
+- try, catch ブロックは独立した行に
+- 例：
+  ```cpp
+  try {
+  	// ...
+  } catch (const std::exception& e) {
+  	// ...
+  }
+  ```
+
+## テンプレート
+- テンプレートパラメータは1行に1つ
+- 例：
+  ```cpp
+  template<typename T,
+	 typename U>
+  class CvfDetector {
+  } ;
+  ```
+
+## 定数
+- 定数名は大文字のみのスネークケースで。
+- 例：
+  ```cpp
+  const int	SAMPLE_RATE = 1000 ;
+  const double	THRESHOLD = 0.5 ;
+  ```
+
+## インクルード
+- システムヘッダーは <>
+- ローカルヘッダーは ""
+- 例：
+  ```cpp
+  #include <iostream>
+  #include "vfDetector.h"
+  ```
+
+## 命名規則
+- 基本的にはキャメルケースで。
+- 構造体名: 接尾語として "_t" を付与する。(例: tank_t)
+- クラス名: 接頭語として"C"を付与する（例: CvfDetector）
+- 関数名: 小文字で始める（例: parseArguments）
+- 変数名: 小文字で始める（例: sampleRate）
+- 定数名: 大文字（例: MAX_SAMPLES）
+- マクロ名: 大文字（例: DEBUG_MODE）
+
+
+## Doxygenコメント
+- 特殊コマンド（@brief, @param, @retvalなど）とその後の要素の間はタブで区切る
+- 要素（変数名、戻り値など）と説明文の間はタブで区切る
+- 同じカラムの要素は縦に揃える
+- 例：
+  ```cpp
+  /**
+   * @brief	関数の説明
+   * 
+   * @param	arg1		引数1の説明
+   * @param	arg2		引数2の説明
+   * @retval	true		成功時の説明
+   * @retval	false		失敗時の説明
+   */
+  bool function(int arg1, int arg2) {
+      // ...
+  }
+  ```
+
+## その他
