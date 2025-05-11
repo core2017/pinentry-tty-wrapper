@@ -82,4 +82,18 @@ def test_gpg_tty_undefined(bin_and_mock):
 		f"GPG_TTY未定義時: 終了コードが1でない: {proc.returncode}\n"
 		f"stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
 	)
-	assert "GPG_TTY が未定義" in proc.stderr, f"GPG_TTY未定義時: エラーメッセージが期待通りでない: {proc.stderr}" 
+	assert "GPG_TTY が未定義" in proc.stderr, f"GPG_TTY未定義時: エラーメッセージが期待通りでない: {proc.stderr}"
+
+def test_child_process_success(bin_and_mock):
+	bin_path, mock_path = bin_and_mock
+	env = os.environ.copy()
+	proc = subprocess.run([bin_path, mock_path, "childtest"], capture_output=True, text=True, env=env)
+	assert proc.returncode == 0, f"正常なmock実行: 終了コードが0でない: {proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+	assert "mock: HELLO" in proc.stdout, f"mockが起動していません。stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+
+def test_child_process_notfound(bin_and_mock):
+	bin_path, _ = bin_and_mock
+	env = os.environ.copy()
+	proc = subprocess.run([bin_path, "/notfound"], capture_output=True, text=True, env=env)
+	assert proc.returncode == 1, f"notfound実行: 終了コードが1でない: {proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+	assert "execvp" in proc.stderr or "No such file" in proc.stderr, f"notfound実行: エラーメッセージが期待通りでない: {proc.stderr}" 
