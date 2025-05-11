@@ -1,0 +1,9 @@
+{
+    "editor.formatOnSave": true,
+    "[c]": {
+        "editor.defaultFormatter": "zachflower.uncrustify"
+      },
+      "[cpp]": {
+        "editor.defaultFormatter": "zachflower.uncrustify"
+    }
+}
