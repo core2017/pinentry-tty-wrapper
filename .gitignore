@@ -9,6 +9,7 @@ compile
 config.log
 config.status
 configure
+configure.lineno
 depcomp
 gpg
 install-sh
