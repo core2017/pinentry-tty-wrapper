@@ -7,13 +7,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-static void restore_termios( int fd, struct termios *saved_termios )
-{
-	if( tcsetattr( fd, TCSANOW, saved_termios ) < 0 ) {
-		perror( "tcsetattr" ) ;
-	}
-}
-
 
 int main( int ac, char * const av[] )
 {
@@ -67,7 +60,9 @@ int main( int ac, char * const av[] )
 	}
 
 	/* Restore original terminal settings */
-	restore_termios( fd, &saved_termios ) ;
+	if( tcsetattr( fd, TCSANOW, &saved_termios ) < 0 ) {
+		perror( "tcsetattr" ) ;
+	}
 
 	/* Return the exit status of the pinentry program */
 	if( WIFEXITED( status )) {
