@@ -109,4 +109,12 @@ def test_termios_settings(bin_and_mock):
 	iflag = int(m.group(1), 16)
 	oflag = int(m.group(2), 16)
 	assert (iflag & 0x0100) != 0, f"ICRNLフラグが立っていない: iflag=0x{iflag:04x}"
-	assert (oflag & 0x0001) != 0, f"OPOSTフラグが立っていない: oflag=0x{oflag:04x}" 
+	assert (oflag & 0x0001) != 0, f"OPOSTフラグが立っていない: oflag=0x{oflag:04x}"
+
+def test_tcgetattr_failure(bin_and_mock):
+	bin_path, mock_path = bin_and_mock
+	env = os.environ.copy()
+	env["GPG_TTY"] = "/dev/null"
+	proc = subprocess.run([bin_path, mock_path, "fail"], capture_output=True, text=True, env=env)
+	assert proc.returncode == 1, f"tcgetattr失敗: 終了コードが1でない: {proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+	assert "tcgetattr" in proc.stderr, f"tcgetattr失敗: エラーメッセージが期待通りでない: {proc.stderr}"
