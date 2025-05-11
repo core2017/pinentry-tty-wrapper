@@ -96,4 +96,17 @@ def test_child_process_notfound(bin_and_mock):
 	env = os.environ.copy()
 	proc = subprocess.run([bin_path, "/notfound"], capture_output=True, text=True, env=env)
 	assert proc.returncode == 1, f"notfound実行: 終了コードが1でない: {proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
-	assert "execvp" in proc.stderr or "No such file" in proc.stderr, f"notfound実行: エラーメッセージが期待通りでない: {proc.stderr}" 
+	assert "execvp" in proc.stderr or "No such file" in proc.stderr, f"notfound実行: エラーメッセージが期待通りでない: {proc.stderr}"
+
+def test_termios_settings(bin_and_mock):
+	bin_path, mock_path = bin_and_mock
+	env = os.environ.copy()
+	proc = subprocess.run([bin_path, mock_path, "termios"], capture_output=True, text=True, env=env)
+	assert proc.returncode == 0, f"termiosテスト: 終了コードが0でない: {proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+	import re
+	m = re.search(r"termios: iflag:0x([0-9a-fA-F]+), oflag:0x([0-9a-fA-F]+)", proc.stdout)
+	assert m, f"termios出力が見つからない: stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+	iflag = int(m.group(1), 16)
+	oflag = int(m.group(2), 16)
+	assert (iflag & 0x0100) != 0, f"ICRNLフラグが立っていない: iflag=0x{iflag:04x}"
+	assert (oflag & 0x0001) != 0, f"OPOSTフラグが立っていない: oflag=0x{oflag:04x}" 
