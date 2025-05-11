@@ -1,3 +1,10 @@
+/*
+ * Copyright 2025 (C) Shin-ichi Nagamura.
+ * All rights reserved.
+ *
+ * $Id$
+ */
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +15,15 @@
 #include <unistd.h>
 
 
+/**
+ * @brief	メイン関数
+ * @details	pinentry-tty プログラムを実行するラッパー。
+ *			termios の設定を適切に行い、pinentry-tty を実行する。
+ * @param	ac	コマンドライン引数の数
+ * @param	av	コマンドライン引数の配列
+ * @return	0	正常終了
+ * @return	1	エラー終了
+ */
 int main( int ac, char * const av[] )
 {
 	struct termios		saved_termios ;
