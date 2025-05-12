@@ -16,4 +16,5 @@ install-sh
 Makefile
 Makefile.in
 missing
+pinentry-tty
 pinentry-tty-wrapper
