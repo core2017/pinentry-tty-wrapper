@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 # basic rules
@@ -11,10 +11,6 @@ alwaysApply: true
 ルールの優先順位は `priority.mdc` を参照すること。
 
 ## コーディングルール
-
-### ファイル操作
-- ユーザーの明示的な許可なく、ファイルの作成、編集、削除を行わない
-- ファイル操作が必要な場合は、必ずユーザーに確認を取る
 
 ### 早期リターンの原則
 - 条件が満たされない場合は早期にリターンする

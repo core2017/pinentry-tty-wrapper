@@ -1,5 +1,5 @@
 ---
-description: 
+description:
 globs: *.cpp,*.c,*.h,*.hpp
 alwaysApply: false
 ---
@@ -10,6 +10,12 @@ alwaysApply: false
 
 ## ソースコード記述ルール
 - formatter は uncrstify を利用する。
+
+###
+- 基本的な命名規則はキャメルケース。
+- 関数は動詞、そのほかは名詞で命名。
+- 1行コメントは英語で。複数行コメントは日本語で記述。
+- 関数は必ずプロトタイプ宣言を行う。
 
 ## ファイル構成順序
 1. copyright表記
@@ -72,33 +78,10 @@ alwaysApply: false
 - Doxygenコメントの特殊コマンド、要素、説明文の位置
 
 ## 変数宣言
-- 1行に1つの変数宣言
-- 型と変数名の間にタブを使用
-- 複数行の変数宣言は縦位置を揃える
-- 例：
-  ```cpp
-  int		opt ;
-  int		option_index = 0 ;
-  bool		verbose = false ;
-  bool		debug = false ;
-  ```
 
 ## 関数宣言
-- 引数の型と変数名の間にスペース
-- 引数間のカンマの後にスペース
-- 例：
-  ```cpp
-  bool parseArguments(int argc, char* argv[], std::string& algorithm, bool& verbose, bool& debug)
-  ```
 
 ## ポインタと参照
-- ポインタの*は型名に付ける
-- 参照の&は変数名に付ける
-- 例：
-  ```cpp
-  char*		ptr ;		// ポインタ
-  std::string&	ref ;		// 参照
-  ```
 
 ## クラス
 - クラス名はprefixとして "C" を付ける。
@@ -158,7 +141,7 @@ alwaysApply: false
 
   /**
    * @brief	関数の説明
-   * 
+   *
    * @param	arg1		引数1の説明
    * @param	arg2		引数2の説明
    * @return	true		成功時の説明
@@ -187,7 +170,7 @@ alwaysApply: false
 - 例：
   ```c, cpp
   /* ----- 1行コメント ----- */
-  
+
   /*
    * 複数行コメント
    * 2行目
@@ -195,7 +178,7 @@ alwaysApply: false
 
   /**
    * @brief	関数の説明
-   * 
+   *
    * @param	arg1		引数1の説明
    * @param	arg2		引数2の説明
    * @retval	true		成功時の説明
@@ -273,7 +256,7 @@ alwaysApply: false
   ```cpp
   /**
    * @brief	関数の説明
-   * 
+   *
    * @param	arg1		引数1の説明
    * @param	arg2		引数2の説明
    * @retval	true		成功時の説明
