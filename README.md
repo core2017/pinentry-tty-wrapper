@@ -1,15 +1,12 @@
 # pinentry-tty-wrapper
 
-A wrapper for pinentry programs that ensures proper terminal settings.
+pinentry-tty-wrapper は、同じディレクトリに存在する pinentry-tty を起動し、端末設定（termios）を適切に制御するラッパープログラムである。
 
-## Description
+## 概要
 
-This wrapper program ensures that the terminal settings (termios) are properly
-configured before running a pinentry program. It saves the current terminal
-settings, sets ICRNL and OPOST flags, runs the specified pinentry program,
-and restores the original terminal settings when the pinentry program exits.
+本プログラムは、pinentry-tty の入出力が ssh 等の端末設定の影響で正しく動作しない場合に、必要な termios フラグ（ICRNL, OPOST）を設定した上で pinentry-tty を起動し、終了時に元の設定へ戻す。
 
-## Installation
+## インストール
 
 ```bash
 ./configure
@@ -17,19 +14,16 @@ make
 sudo make install
 ```
 
-## Usage
+## 設定例
 
-In your `gpg-agent.conf`:
+gpg-agent.conf には以下のように記述する。
 
 ```
-pinentry-program /usr/local/bin/pinentry-tty-wrapper /usr/local/bin/pinentry-tty
+pinentry-program /usr/local/bin/pinentry-tty-wrapper
 ```
 
-The wrapper will pass all additional arguments to the specified pinentry program.
+pinentry-tty-wrapper は、自身と同じディレクトリにある pinentry-tty を自動的に起動する仕様である。
 
-## License
+## ライセンス
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3 of the License, or
-(at your option) any later version. 
+本プログラムは BSD-3-Clause ライセンスの下で配布する。
