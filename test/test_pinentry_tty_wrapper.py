@@ -36,72 +36,66 @@ import sys
 import syslog
 
 @pytest.fixture(scope="module")
-def bin_and_mock():
+def build_wrapper_path():
 	mydir = os.path.dirname(os.path.abspath(__file__))
 	bin_path = os.path.abspath(os.path.join(mydir, "..", "pinentry-tty-wrapper"))
-	mock_path = os.path.join(mydir, "mock")
-	return bin_path, mock_path
+	return bin_path
 
-@pytest.mark.parametrize("args, expect_code, expect_usage", [
-	([], 1, True),                # 引数なし
-	(["mock"], 0, False),        # mockのみ
-	(["mock", "arg1"], 0, False), # mock+arg1
-])
-def test_command_line_args(bin_and_mock, args, expect_code, expect_usage):
-	bin_path, mock_path = bin_and_mock
-	# mockの絶対パスをargs[0]が"mock"なら差し替え
-	full_args = [bin_path]
-	if args:
-		if args[0] == "mock":
-			full_args.append(mock_path)
-			full_args.extend(args[1:])
-		else:
-			full_args.extend(args)
-	syslog.syslog(syslog.LOG_DEBUG, '実行コマンド:' + " ".join(full_args))
-	proc = subprocess.run(full_args, capture_output=True, text=True)
-	assert proc.returncode == expect_code, (
-		f"args={args}: 終了コードが期待値({expect_code})でない: {proc.returncode}\n"
-		f"stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
-	)
-	if expect_usage:
-		assert "Usage:" in proc.stderr, f"args={args}: usage表示なし: {proc.stderr}"
-	else:
-		assert "Usage:" not in proc.stderr, f"args={args}: usage表示が出てしまった: {proc.stderr}"
-		assert "mock: HELLO" in proc.stdout, (
-			f"mockが起動していません。stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
-		)
+# pinentry-ttyのリンク操作用ヘルパ
+MOCK_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "mock"))
+PINENTRY_TTY_LINK = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "pinentry-tty"))
 
-def test_gpg_tty_undefined(bin_and_mock):
-	bin_path, mock_path = bin_and_mock
+def create_pinentry_tty_link():
+	if os.path.islink(PINENTRY_TTY_LINK) or os.path.exists(PINENTRY_TTY_LINK):
+		os.remove(PINENTRY_TTY_LINK)
+	os.symlink(MOCK_PATH, PINENTRY_TTY_LINK)
+
+def remove_pinentry_tty_link():
+	if os.path.islink(PINENTRY_TTY_LINK) or os.path.exists(PINENTRY_TTY_LINK):
+		os.remove(PINENTRY_TTY_LINK)
+
+@pytest.fixture(scope="module", autouse=True)
+def cleanup_pinentry_tty():
+	yield
+	# クリーンナップ: pinentry-ttyリンクを削除
+	if os.path.islink(PINENTRY_TTY_LINK) or os.path.exists(PINENTRY_TTY_LINK):
+		os.remove(PINENTRY_TTY_LINK)
+
+def test_gpg_tty_undefined(build_wrapper_path):
+	remove_pinentry_tty_link()
+	bin_path = build_wrapper_path
 	# GPG_TTY未定義で実行
 	env = os.environ.copy()
 	if "GPG_TTY" in env:
 		del env["GPG_TTY"]
-	proc = subprocess.run([bin_path, mock_path], capture_output=True, text=True, env=env)
+	proc = subprocess.run([bin_path], capture_output=True, text=True, env=env)
 	assert proc.returncode == 1, (
 		f"GPG_TTY未定義時: 終了コードが1でない: {proc.returncode}\n"
 		f"stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
 	)
 	assert "GPG_TTY が未定義" in proc.stderr, f"GPG_TTY未定義時: エラーメッセージが期待通りでない: {proc.stderr}"
 
-def test_child_process_success(bin_and_mock):
-	bin_path, mock_path = bin_and_mock
+def test_child_process_success(build_wrapper_path):
+	create_pinentry_tty_link()
+	bin_path = build_wrapper_path
 	env = os.environ.copy()
-	proc = subprocess.run([bin_path, mock_path, "childtest"], capture_output=True, text=True, env=env)
+	proc = subprocess.run([bin_path], capture_output=True, text=True, env=env)
 	assert proc.returncode == 0, f"正常なmock実行: 終了コードが0でない: {proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
 	assert "mock: HELLO" in proc.stdout, f"mockが起動していません。stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
 
-def test_child_process_notfound(bin_and_mock):
-	bin_path, _ = bin_and_mock
+def test_child_process_notfound(build_wrapper_path):
+	remove_pinentry_tty_link()
+	bin_path = build_wrapper_path
 	env = os.environ.copy()
-	proc = subprocess.run([bin_path, "/notfound"], capture_output=True, text=True, env=env)
+	proc = subprocess.run([bin_path], capture_output=True, text=True, env=env)
 	assert proc.returncode == 1, f"notfound実行: 終了コードが1でない: {proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
 	assert "execvp" in proc.stderr or "No such file" in proc.stderr, f"notfound実行: エラーメッセージが期待通りでない: {proc.stderr}"
 
-def test_termios_settings(bin_and_mock):
-	bin_path, mock_path = bin_and_mock
+def test_termios_settings(build_wrapper_path):
+	create_pinentry_tty_link()
+	bin_path = build_wrapper_path
 	env = os.environ.copy()
-	proc = subprocess.run([bin_path, mock_path, "termios"], capture_output=True, text=True, env=env)
+	proc = subprocess.run([bin_path], capture_output=True, text=True, env=env)
 	assert proc.returncode == 0, f"termiosテスト: 終了コードが0でない: {proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
 	import re
 	m = re.search(r"termios: iflag:0x([0-9a-fA-F]+), oflag:0x([0-9a-fA-F]+)", proc.stdout)
@@ -111,10 +105,11 @@ def test_termios_settings(bin_and_mock):
 	assert (iflag & 0x0100) != 0, f"ICRNLフラグが立っていない: iflag=0x{iflag:04x}"
 	assert (oflag & 0x0001) != 0, f"OPOSTフラグが立っていない: oflag=0x{oflag:04x}"
 
-def test_tcgetattr_failure(bin_and_mock):
-	bin_path, mock_path = bin_and_mock
+def test_tcgetattr_failure(build_wrapper_path):
+	create_pinentry_tty_link()
+	bin_path = build_wrapper_path
 	env = os.environ.copy()
 	env["GPG_TTY"] = "/dev/null"
-	proc = subprocess.run([bin_path, mock_path, "fail"], capture_output=True, text=True, env=env)
+	proc = subprocess.run([bin_path], capture_output=True, text=True, env=env)
 	assert proc.returncode == 1, f"tcgetattr失敗: 終了コードが1でない: {proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
 	assert "tcgetattr" in proc.stderr, f"tcgetattr失敗: エラーメッセージが期待通りでない: {proc.stderr}"
