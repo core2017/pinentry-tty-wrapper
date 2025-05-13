@@ -73,7 +73,7 @@ def test_gpg_tty_undefined(build_wrapper_path):
 		f"GPG_TTY未定義時: 終了コードが1でない: {proc.returncode}\n"
 		f"stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
 	)
-	assert "GPG_TTY が未定義" in proc.stderr, f"GPG_TTY未定義時: エラーメッセージが期待通りでない: {proc.stderr}"
+	assert "GPG_TTY is not defined" in proc.stderr, f"GPG_TTY未定義時: エラーメッセージが期待通りでない: {proc.stderr}"
 
 def test_child_process_success(build_wrapper_path):
 	create_pinentry_tty_link()

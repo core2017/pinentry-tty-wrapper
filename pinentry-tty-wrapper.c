@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <termios.h>
@@ -37,6 +38,9 @@
 #include <fcntl.h>
 #include <libgen.h>
 
+#ifndef BINDIR
+#error "BINDIR macro is not defined. Please define BINDIR via build system (e.g., -DBINDIR=\"/usr/local/bin\")."
+#endif
 
 static void		safeFree( char const** const ptr ) ;
 static void		safeClose( int* const fd ) ;
@@ -100,6 +104,11 @@ int main( int ac, char* const av[] )
 	char*					pinentryPath	= NULL ;
 
 
+	/* ----- open syslog ----- */
+	openlog( "pinentry-tty-wrapper", LOG_PID | LOG_PERROR, LOG_USER ) ;
+	syslog( LOG_DEBUG, "pinentry-tty-wrapper: start" ) ;
+
+
 	/*
 	 * validate arguments and environment variables.
 	 */
@@ -112,7 +121,7 @@ int main( int ac, char* const av[] )
 
 	/* ----- check GPG_TTY ----- */
 	if( gpgTty == NULL ) {
-		fprintf( stderr, "GPG_TTY が未定義であるため終了する。\n" ) ;
+		syslog( LOG_ERR, "GPG_TTY is not defined. Exiting." ) ;
 		return( 1 ) ;
 	}
 
@@ -122,12 +131,12 @@ int main( int ac, char* const av[] )
 	 */
 
 	if(( fd = open( gpgTty, O_RDWR )) < 0 ) {
-		perror( "open(GPG_TTY)" ) ;
+		syslog( LOG_ERR, "open(GPG_TTY) failed: %s", strerror( errno )) ;
 		goto failed ;
 	}
 
 	if( tcgetattr( fd, &savedTermios ) < 0 ) {
-		perror( "tcgetattr" ) ;
+		syslog( LOG_ERR, "tcgetattr failed: %s", strerror( errno )) ;
 		goto failed ;
 	}
 
@@ -136,7 +145,7 @@ int main( int ac, char* const av[] )
 	savedTermios.c_oflag	|= OPOST ;
 
 	if( tcsetattr( fd, TCSANOW, &savedTermios ) < 0 ) {
-		perror( "tcsetattr" ) ;
+		syslog( LOG_ERR, "tcsetattr failed: %s", strerror( errno )) ;
 		goto failed ;
 	}
 
@@ -146,20 +155,22 @@ int main( int ac, char* const av[] )
 	 */
 
 	/* ラッパー自身のパスからディレクトリを抽出し、pinentry-tty のパスを生成する */
+	syslog( LOG_DEBUG, "%s():%u: av[0]=%s", __func__, __LINE__, av[0] ) ;
+
 	if(( wrapperPath = strdup( av[0] )) == NULL ) {
-		fprintf( stderr, "strdup に失敗した。\n" ) ;
+		syslog( LOG_ERR, "strdup failed: %s", strerror( errno )) ;
 		goto failed ;
 	}
 
-	if( asprintf( &pinentryPath, "%s/pinentry-tty", dirname( wrapperPath )) < 0 ) {
-		fprintf( stderr, "vasprintf に失敗した。\n" ) ;
+	if( asprintf( &pinentryPath, "%s/pinentry-tty", BINDIR ) < 0 ) {
+		syslog( LOG_ERR, "asprintf failed: %s", strerror( errno )) ;
 		goto failed ;
 	}
 
 	safeFree((char const**)&wrapperPath ) ;
 
 	if(( pid = fork()) < 0 ) {
-		perror( "fork" ) ;
+		syslog( LOG_ERR, "fork failed: %s", strerror( errno )) ;
 		goto failed ;
 	}
 
@@ -168,21 +179,22 @@ int main( int ac, char* const av[] )
 		char* const    args[] = {
 			pinentryPath, NULL
 		} ;
+		syslog( LOG_DEBUG, "%s():%u: pinentryPath=%s", __func__, __LINE__, pinentryPath ) ;
 		execvp( pinentryPath, args ) ;
-		perror( "execvp" ) ;
+		syslog( LOG_ERR, "execvp failed: %s", strerror( errno )) ;
 		safeFree((char const**)&pinentryPath ) ;
 		exit( 1 ) ;
 	}
 
 	/* 親プロセス */
 	if( waitpid( pid, &status, 0 ) < 0 ) {
-		perror( "waitpid" ) ;
+		syslog( LOG_ERR, "waitpid failed: %s", strerror( errno )) ;
 		goto failed ;
 	}
 
 	/* Restore original terminal settings */
 	if( tcsetattr( fd, TCSANOW, &savedTermios ) < 0 ) {
-		perror( "tcsetattr" ) ;
+		syslog( LOG_ERR, "tcsetattr failed: %s", strerror( errno )) ;
 	}
 
 	safeClose( &fd ) ;
